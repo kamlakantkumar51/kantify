@@ -6,8 +6,7 @@
 
 ## 📸 Dashboard Preview
 
-![kantTasks Desktop Dashboard](<img width="1920" height="912" alt="image" src="https://github.com/user-attachments/assets/50ef8965-0aca-4f3f-bb79-121305b92ed7" />
-)
+![kantTasks Desktop Dashboard](..public/screenshot.png)
 
 ---
 
