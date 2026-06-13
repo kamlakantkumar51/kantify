@@ -508,11 +508,140 @@ export default function App() {
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         .nav-item:hover { background: ${COLORS.accentSoft} !important; color: ${COLORS.accent} !important; }
         .task-card:hover { border-color: ${COLORS.accent}44 !important; }
+
+        /* Sidebar Backdrop */
+        .sidebar-backdrop {
+          display: none;
+        }
+
+        /* Responsive Grids & Layouts */
+        .dashboard-mid-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .dashboard-bottom-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .notes-view-grid {
+          display: grid;
+          grid-template-columns: 220px 1fr;
+          gap: 16px;
+          animation: fadeIn 0.3s ease;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+          .dashboard-mid-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          /* App Topbar adjustment */
+          .app-topbar {
+            padding: 12px 16px !important;
+          }
+
+          /* Mobile Sidebar styles */
+          .app-sidebar {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
+            width: 220px !important;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease-in-out !important;
+          }
+
+          .app-sidebar.open {
+            transform: translateX(0) !important;
+          }
+
+          /* Backdrop */
+          .sidebar-backdrop {
+            display: block !important;
+          }
+
+          /* Mobile Hamburger Button */
+          .sidebar-toggle-mobile {
+            display: block !important;
+          }
+
+          /* Content Padding adjustment */
+          .page-content {
+            padding: 16px !important;
+          }
+
+          /* Grids to single column */
+          .dashboard-mid-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .dashboard-bottom-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .notes-view-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Mobile Topbar Adjustments */
+          .topbar-date {
+            display: none !important;
+          }
+          
+          .topbar-overdue {
+            padding: 4px 8px !important;
+            font-size: 10px !important;
+          }
+
+          .new-task-button {
+            padding: 7px 12px !important;
+            font-size: 11px !important;
+          }
+
+          /* Mobile Filters Adjustments */
+          .filters-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+
+          .filters-container input,
+          .filters-container select {
+            width: 100% !important;
+          }
+
+          /* Mobile Notes Detail View Stacking */
+          .notes-list-container.mobile-hide {
+            display: none !important;
+          }
+
+          .note-editor-container.mobile-hide {
+            display: none !important;
+          }
+
+          .note-back-button {
+            display: inline-block !important;
+          }
+        }
       `}</style>
 
+      {/* Sidebar Backdrop for Mobile */}
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99 }} />
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: sidebarOpen ? 220 : 64, background: COLORS.surface, borderRight: `1px solid ${COLORS.border}`,
-        display: "flex", flexDirection: "column", transition: "width 0.25s", overflow: "hidden", flexShrink: 0, zIndex: 10 }}>
+      <div className={`app-sidebar ${sidebarOpen ? "open" : ""}`} style={{ width: sidebarOpen ? 220 : 64, background: COLORS.surface, borderRight: `1px solid ${COLORS.border}`,
+        display: "flex", flexDirection: "column", transition: "width 0.25s", overflow: "hidden", flexShrink: 0, zIndex: 100 }}>
         <div style={{ padding: "20px 16px 16px", borderBottom: `1px solid ${COLORS.border}` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0,
@@ -531,7 +660,7 @@ export default function App() {
 
         <nav style={{ flex: 1, padding: "12px 8px" }}>
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setView(n.id)} className="nav-item"
+            <button key={n.id} onClick={() => { setView(n.id); if (window.innerWidth <= 768) setSidebarOpen(false); }} className="nav-item"
               style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 10px",
                 borderRadius: 10, border: "none", cursor: "pointer", marginBottom: 2, textAlign: "left",
                 transition: "all 0.15s",
@@ -560,21 +689,25 @@ export default function App() {
       {/* Main Content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Topbar */}
-        <div style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: "12px 24px",
+        <div className="app-topbar" style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: "12px 24px",
           display: "flex", alignItems: "center", gap: 12 }}>
+          <button className="sidebar-toggle-mobile" onClick={() => setSidebarOpen(s => !s)}
+            style={{ background: "none", border: "none", color: COLORS.text, fontSize: 20, cursor: "pointer", marginRight: 8, display: "none" }}>
+            ☰
+          </button>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.text }}>
               {NAV.find(n => n.id === view)?.icon} {NAV.find(n => n.id === view)?.label}
             </div>
-            <div style={{ fontSize: 11, color: COLORS.muted }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
+            <div className="topbar-date" style={{ fontSize: 11, color: COLORS.muted }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
           </div>
           {overdue.length > 0 && (
-            <div style={{ fontSize: 11, padding: "5px 12px", borderRadius: 20, background: COLORS.redSoft,
+            <div className="topbar-overdue" style={{ fontSize: 11, padding: "5px 12px", borderRadius: 20, background: COLORS.redSoft,
               color: COLORS.red, fontWeight: 700, animation: "pulse 2s infinite" }}>
               ⚠ {overdue.length} Overdue
             </div>
           )}
-          <button onClick={() => { setEditTask(null); setModal("add"); }}
+          <button className="new-task-button" onClick={() => { setEditTask(null); setModal("add"); }}
             style={{ padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer",
               background: `linear-gradient(135deg, ${COLORS.accent}, #a855f7)`,
               color: "#fff", fontWeight: 700, fontSize: 13, whiteSpace: "nowrap" }}>
@@ -583,7 +716,7 @@ export default function App() {
         </div>
 
         {/* Page Content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
+        <div className="page-content" style={{ flex: 1, overflowY: "auto", padding: 24 }}>
 
           {/* ── DASHBOARD ── */}
           {view === "dashboard" && (
@@ -595,7 +728,7 @@ export default function App() {
                 <StatCard label="OVERDUE" value={overdue.length} icon="⚠️" color={overdue.length ? COLORS.red : COLORS.muted} sub="need attention" />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div className="dashboard-mid-grid">
                 {/* Progress */}
                 <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: 20,
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
@@ -647,7 +780,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="dashboard-bottom-grid">
                 <MiniBarChart tasks={tasks} />
                 {/* Quick AI suggestion */}
                 <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: 20,
@@ -680,7 +813,7 @@ export default function App() {
             <div style={{ animation: "fadeIn 0.3s ease" }}>
               {/* Filters */}
               <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                <div className="filters-container" style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                   <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search tasks..."
                     style={{ flex: 1, minWidth: 180, background: COLORS.surface, border: `1px solid ${COLORS.border}`,
                       borderRadius: 9, padding: "8px 12px", color: COLORS.text, fontSize: 13, outline: "none" }} />
@@ -802,18 +935,19 @@ function NotesView() {
   const [notes, setNotes] = useState(DEFAULTS);
   const [active, setActive] = useState(1);
   const [editing, setEditing] = useState(false);
+  const [mobileShowEditor, setMobileShowEditor] = useState(false);
 
   const current = notes.find(n => n.id === active);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 16, animation: "fadeIn 0.3s ease" }}>
-      <div>
-        <button onClick={() => { const id = Date.now(); setNotes(n => [...n, { id, title: "New Note", content: "", color: COLORS.amberSoft }]); setActive(id); setEditing(true); }}
+    <div className="notes-view-grid">
+      <div className={`notes-list-container ${mobileShowEditor ? "mobile-hide" : ""}`}>
+        <button onClick={() => { const id = Date.now(); setNotes(n => [...n, { id, title: "New Note", content: "", color: COLORS.amberSoft }]); setActive(id); setEditing(true); setMobileShowEditor(true); }}
           style={{ width: "100%", padding: "9px", borderRadius: 10, border: `1px dashed ${COLORS.border}`,
             background: "transparent", color: COLORS.muted, cursor: "pointer", fontSize: 13, marginBottom: 10 }}>
           + New Note
         </button>
         {notes.map(n => (
-          <div key={n.id} onClick={() => { setActive(n.id); setEditing(false); }}
+          <div key={n.id} onClick={() => { setActive(n.id); setEditing(false); setMobileShowEditor(true); }}
             style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", marginBottom: 6,
               background: active === n.id ? COLORS.card : "transparent",
               border: `1px solid ${active === n.id ? COLORS.border : "transparent"}` }}>
@@ -825,16 +959,20 @@ function NotesView() {
         ))}
       </div>
       {current && (
-        <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: 20 }}>
+        <div className={`note-editor-container ${!mobileShowEditor ? "mobile-hide" : ""}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: 20 }}>
           <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
+            <button className="note-back-button" onClick={() => setMobileShowEditor(false)}
+              style={{ display: "none", background: "none", border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: "6px 10px", color: COLORS.text, cursor: "pointer", marginRight: 4 }}>
+              ←
+            </button>
             <input value={current.title} onChange={e => setNotes(n => n.map(x => x.id === active ? { ...x, title: e.target.value } : x))}
-              style={{ flex: 1, background: "transparent", border: "none", fontSize: 18, fontWeight: 700, color: COLORS.text, outline: "none" }} />
+              style={{ flex: 1, background: "transparent", border: "none", fontSize: 18, fontWeight: 700, color: COLORS.text, outline: "none", minWidth: 0 }} />
             <button onClick={() => setEditing(e => !e)}
               style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`,
                 background: editing ? COLORS.accentSoft : "transparent", color: editing ? COLORS.accent : COLORS.muted, cursor: "pointer", fontSize: 12 }}>
               {editing ? "✓ Done" : "✏ Edit"}
             </button>
-            <button onClick={() => { setNotes(n => n.filter(x => x.id !== active)); setActive(notes[0]?.id); }}
+            <button onClick={() => { setNotes(n => n.filter(x => x.id !== active)); setActive(notes[0]?.id); setMobileShowEditor(false); }}
               style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: COLORS.redSoft, color: COLORS.red, cursor: "pointer", fontSize: 12 }}>🗑</button>
           </div>
           {editing
